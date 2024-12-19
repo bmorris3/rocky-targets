@@ -9,7 +9,6 @@
 ```
 git clone https://github.com/bmorris3/rocky-targets
 pip install -r requirements.txt
-pip install jupyterlab
 jupyter lab rocky-targets/cs-interact.ipynb
 ```
 
