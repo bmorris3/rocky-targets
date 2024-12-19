@@ -1,6 +1,5 @@
-numpy as np
+numpy
 jax[cpu]
-
 matplotlib
 astropy
 ipywidgets
