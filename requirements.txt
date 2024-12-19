@@ -3,3 +3,4 @@ jax[cpu]
 matplotlib
 astropy
 ipywidgets
+jupyterlab
