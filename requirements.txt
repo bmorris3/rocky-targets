@@ -1,5 +1,5 @@
 numpy
-jax
+jax[cpu]
 matplotlib
 astropy
 ipywidgets
