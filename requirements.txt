@@ -1,0 +1,6 @@
+numpy as np
+jax[cpu]
+
+matplotlib
+astropy
+ipywidgets
