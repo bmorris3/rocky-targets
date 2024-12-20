@@ -68,7 +68,7 @@ def eclipse_error(flux_ratio, rp_rs, duration, magnitude, teff):
 
 
 @jit
-def target_cost(teff, aRs, AB_min, AB_max, eps_max, rp_rs, K_mag, n_sigma, eclipse_dur):
+def target_cost(teff, aRs, AB_min, AB_max, eps_max, rp_rs, K_mag, n_sigma, eclipse_dur, one_eclipse_precision_hdl, photon_noise_excess):
     dayside_temperature_no_redist = Tday(
         teff, aRs, 
         AB=AB_min, 
@@ -89,12 +89,22 @@ def target_cost(teff, aRs, AB_min, AB_max, eps_max, rp_rs, K_mag, n_sigma, eclip
         dayside_temperature_full_redist, 
         teff
     )
-    single_eclipse_error = eclipse_error(
+    scaled_single_eclipse_error = eclipse_error(
         fp_fs_no_redist, 
         rp_rs, 
         eclipse_dur, 
         K_mag, teff
     )
+
+    # allow scaling of eclipse depth precision between the one estimated from scaling TRAPPIST-1 c
+    # and the photon-noise-limited eclipse depth precision from Pandeia. 
+    # photon_noise_excess==0 returns Pandeia precision, photon_noise_excess==1 returns 
+    # the scaled TRAPPIST-1 c precision, photon_noise_excess > 1 would represent worse noise than T-1 c.
+    single_eclipse_error = (
+        one_eclipse_precision_hdl + 
+        photon_noise_excess * (scaled_single_eclipse_error - one_eclipse_precision_hdl)
+    )
+    
     eclipses_for_n_sigma = jnp.ceil(
         (n_sigma * single_eclipse_error / 
          (fp_fs_no_redist - fp_fs_full_redist)) ** 2
