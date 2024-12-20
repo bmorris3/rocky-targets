@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.modeling.models import BlackBody
 import astropy.units as u
-
+from astropy.table import Table
 
 __all__ = ['sheet']
 
@@ -108,3 +108,23 @@ def Tday(Ts, aRs, AB, epsilon):
     albedo_factor = (1 - AB) ** 0.25
     efficiency_factor = (2/3 - 5/12 * epsilon) ** 0.25
     return T0 * albedo_factor * efficiency_factor
+
+
+def parse_dang2024():
+    dang2024 = Table.read('cs_sample/dang2024_table3.txt', format='ascii.latex')
+    
+    for col in dang2024.colnames[1:]:
+        for newcol in [col + '_mean', col + '_err']:    
+            if newcol.endswith('mean'):
+                dang2024[newcol] = np.array([row.split('^')[0][1:] for row in dang2024[col]]).astype(float)
+            else:
+                errs = [row.split('^')[1].split('_') for row in dang2024[col]]
+                errs = [[abs(float(e.strip().split('}')[0][1:])) for e in row] for row in errs]
+                dang2024[newcol] = np.mean(errs, axis=1).astype(float)
+    
+    # fig, ax = plt.subplots()
+    # ax.errorbar(
+    #     dang2024['AB_mean'], dang2024['epsilon_mean'], 
+    #     xerr=dang2024['AB_err'], yerr=dang2024['epsilon_err'], fmt='o'
+    # )
+    return dang2024
