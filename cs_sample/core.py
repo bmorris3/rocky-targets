@@ -20,7 +20,8 @@ def download_sheet():
     url = (
         'https://docs.google.com/spreadsheets/d/'
         '1JJQvXVXUn2KLM8f9y5DmCEZbLVtzdhZm6bkU9Of27kg'
-        '/gviz/tq?gid=2101251706&tqx=out:csv'
+        #'/gviz/tq?gid=2101251706&tqx=out:csv'
+        '/gviz/tq?gid=249855819&tqx=out:csv'
     )
 
     if sheet is None:
@@ -48,7 +49,7 @@ def cosmic_shoreline_parameters():
 
 def priority_from_cs_distance(v_esc, instellation):
     slope, intercept = cosmic_shoreline_parameters()
-    x = np.linspace(3, 35, 1000)
+    x = np.linspace(5, 25, 1000)
     y = 10 ** (slope * np.log10(x) + intercept)
     
     # returns +1 for planets on the "retains atmosphere" side of the shoreline,

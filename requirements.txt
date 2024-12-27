@@ -4,3 +4,4 @@ matplotlib
 astropy
 ipywidgets
 jupyterlab
+sidecar
