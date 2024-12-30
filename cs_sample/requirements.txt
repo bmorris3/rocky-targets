@@ -1,0 +1,6 @@
+solara
+numpy
+matplotlib
+astropy
+ipywidgets
+pandas
