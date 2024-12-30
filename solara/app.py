@@ -132,15 +132,17 @@ def Page():
     include_imprecise_mass, set_include_imprecise_mass = solara.use_state(False)
     use_xuv, set_use_xuv = solara.use_state(False)
     require_targets, set_require_targets = solara.use_state([])
+    exclude_targets, set_exclude_targets = solara.use_state([])
 
     with solara.Columns():
         with solara.Column(align='center'):
             with solara.Row():
-                mask_keys = 'teff aRs rp_rs K_mag eclipse_dur'.split()
                 require_targets_idx = [names_dict[target_name] for target_name in require_targets]
+                exclude_targets_idx = [names_dict[target_name] for target_name in exclude_targets]
 
                 required_mask = np.isin(np.arange(len(teff)), np.array(require_targets_idx))
-                mask = required_mask.copy()
+                exclude_mask = np.isin(np.arange(len(teff)), np.array(exclude_targets_idx))
+                mask = required_mask | exclude_mask
 
                 # exclude outside of temperature range, exclude imprecise masses:
                 mask |= ~np.array((teff_min < teff) & (teff < teff_max))
@@ -301,7 +303,8 @@ def Page():
                         include_hot_rocks,
                         include_imprecise_mass,
                         use_xuv,
-                        require_targets
+                        require_targets,
+                        exclude_targets
                     ]
 
                     solara.FigureMatplotlib(fig, dependencies=deps)
@@ -407,9 +410,11 @@ def Page():
                             label='Show XUV instel.',
                             value=use_xuv, on_value=set_use_xuv
                         )
-                    with solara.lab.Tab("Required"):
                         solara.SelectMultiple(
-                            'Require:', require_targets, list(names), on_value=set_require_targets
+                            'Require:', require_targets, sorted(list(names)), on_value=set_require_targets
+                        )
+                        solara.SelectMultiple(
+                            'Exclude:', exclude_targets, sorted(list(names)), on_value=set_exclude_targets
                         )
 
                     with solara.lab.Tab("Scenario"):
@@ -433,7 +438,8 @@ def Page():
                                 'include_hot_rocks': set_include_hot_rocks,
                                 'include_imprecise_mass': set_include_imprecise_mass,
                                 'use_xuv': set_use_xuv,
-                                'require_targets': set_require_targets
+                                'require_targets': set_require_targets,
+                                'exclude_targets': set_exclude_targets
                             }
                             for key, params in scenarios.items():
 
