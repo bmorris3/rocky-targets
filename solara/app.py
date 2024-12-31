@@ -206,17 +206,28 @@ def Page():
                         color='silver',
                         alpha=0.3
                     )
+                    c1 = 1e-4
+                    c2 = 3
+                    c3 = 2.5
+                    c4 = 10
                     cax = ax.scatter(
                         v_esc[sheet_mask],
                         plot_instell[sheet_mask],
                         c=priority[sheet_mask],
                         edgecolor='none',
-                        norm=norm
+                        norm=norm,
+                        s=c1 * (c2 * cost[sheet_mask]) ** c3 + c4,
                     )
+                    plt.colorbar(cax, ax=ax, label='priority', fraction=0.08)
+                    if sum(sheet_mask):
+                        handles, labels = cax.legend_elements(
+                            prop="sizes", alpha=0.6, mec='none',
+                            num=4, fmt='{x:.0f}', func=lambda s: ((s - c4) / c1) ** (1/c3) / c2
+                        )
+                        ax.legend(handles, labels, loc="lower left", title="Cost [hr]", alignment='left')
+
                     for i, (xi, yi) in enumerate(zip(v_esc[sheet_mask], plot_instell[sheet_mask])):
                         ax.annotate(f' {i}', (xi, yi), ha='left', va='bottom', fontsize=9)
-
-                    plt.colorbar(cax, ax=ax, label='priority', fraction=0.08)
 
                     ax.set(
                         xlabel='$v_{\\rm esc}$ [km s$^{-1}$]',
@@ -263,8 +274,8 @@ def Page():
                         fontsize=12
                     )
 
-                    labels = ['$T_{\\rm eff}$ [K]', '$t_{\\rm obs}$ [hrs]', 'priority', '$\\rho$ [$\\rho_\\odot$]',
-                              'log XUV']
+                    labels = ['$T_{\\rm eff}$ [K]', '$t_{\\rm obs}$ [hrs]', 'priority',
+                              '$\\rho$ [$\\rho_\\odot$]', 'log XUV']
                     for i, (parameter, label) in enumerate(zip(
                             [teff, cost, priority, density, np.where(xuv < 1e4, np.log10(xuv), np.nan)],
                             labels
@@ -337,7 +348,7 @@ def Page():
                         solara.Markdown("<br /><br />")
                         solara.FloatSlider(
                             'Bond albedo, with redist.',
-                            value=AB_max, on_value=set_AB_min, min=0, max=1, step=0.05,
+                            value=AB_max, on_value=set_AB_max, min=0, max=1, step=0.05,
                             **slider_kwargs
                         )
                         solara.Markdown("<br /><br />")
