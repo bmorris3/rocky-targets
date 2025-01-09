@@ -200,7 +200,7 @@ def eclipse_error(flux_ratio, rp_rs, duration, magnitude, teff):
 
 
 def target_cost(teff, aRs, AB_min, AB_max, eps_max, rp_rs, K_mag, n_sigma, eclipse_dur, one_eclipse_precision_hdl,
-                photon_noise_excess):
+                photon_noise_excess, overhead_fraction=0.2):
     dayside_temperature_no_redist = Tday(
         teff, aRs,
         AB=AB_min,
@@ -243,7 +243,7 @@ def target_cost(teff, aRs, AB_min, AB_max, eps_max, rp_rs, K_mag, n_sigma, eclip
     )
     cost_hours = np.array(
         eclipses_for_n_sigma *
-        (2 * eclipse_dur + 1.5) * 1.2
+        (2 * eclipse_dur + 1.5) * (1 + overhead_fraction)
     )
     sort_order = np.argsort(cost_hours)
 

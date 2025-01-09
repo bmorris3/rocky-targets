@@ -4,6 +4,7 @@ yum update -y
 yum install nss-tools -y
 yum install python3.11.x86_64 -y
 python3 -m venv venv
+source venv/bin/activate
 python3 -m ensurepip
 curl -O https://raw.githubusercontent.com/bmorris3/rocky-targets/refs/heads/main/solara/requirements.txt
 curl -O https://raw.githubusercontent.com/bmorris3/rocky-targets/refs/heads/main/solara/app.py
