@@ -2,6 +2,7 @@ import os
 from packaging.version import Version
 import solara
 import numpy as np
+import markdown
 
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
@@ -567,3 +568,7 @@ def Page():
                                     description.append(f"{var_to_markdown[param_name]} = {param_value}  ")
 
                                 solara.Markdown(', '.join(description) + '<br /><br /><br />')
+
+                    with solara.lab.Tab("Docs"):
+                        with solara.Column():
+                            solara.Markdown(open("docs.md").read())
