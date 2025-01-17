@@ -113,6 +113,8 @@ are shown with colored markers, and targets that meet the criteria but would not
 program duration are shown as unfilled black circles. The size of the marker is proportional to the
 observation cost, and color indicates log distance from the cosmic shoreline reference line shown in gray.
 
+You can choose the vertical axis of the cosmic shoreline plot – either the full-spectrum instellation *or* the
+XUV instellation – by toggling a checkbox in the ``INCLUDE`` tab.
 
 ### 4b. Targets
 
