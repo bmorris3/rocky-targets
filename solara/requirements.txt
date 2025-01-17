@@ -4,5 +4,4 @@ matplotlib
 astropy
 ipywidgets
 pandas
-uvicorn
-solara-server[all]
+
