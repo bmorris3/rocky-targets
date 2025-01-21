@@ -132,6 +132,3 @@ The table shown on the left in the ``UNSCHEDULED`` tab shows targets that meet t
 set within the app that *do not* fit within the maximum program duration, sorted in cost order.
 
 Unscheduled planets are shown in the cosmic shoreline plot on the left with unfilled black circles.
-
-
-

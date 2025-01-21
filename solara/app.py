@@ -19,7 +19,8 @@ from ipywidgets import (
 )
 
 from core import (
-    download_sheet, priority_from_cs_distance, target_cost
+    download_sheet, priority_from_cs_distance, target_cost,
+    closest_albedos
 )
 
 sheet = download_sheet()
@@ -402,25 +403,48 @@ def Page():
                     with solara.lab.Tab("System"):
                         solara.Markdown("## Planet-star system requirements")
 
+                        solara.Details(summary="Click to expand: reference solar system Bond albedos",
+                                       children=[solara.Markdown(open("solar_system.md").read())],
+                                       expand=False)
+
+                        solara.Markdown("<br /><br />")
                         solara.Markdown("#### Planet: deepest eclipse")
                         solara.FloatSlider(
                             'Bond albedo, no redist.',
-                            value=AB_min, on_value=set_AB_min, min=0, max=1, step=0.05,
+                            value=AB_min, on_value=set_AB_min, min=0, max=1, step=0.01,
                             **slider_kwargs
+                        )
+                        (
+                            (planet_name, planet_A_B, planet_ref),
+                            (moon_name, moon_A_B, moon_ref)
+                        ) = closest_albedos(AB_min)
+                        solara.Markdown(
+                            f"Closest to {planet_name} with $A_{{\\rm B}} = {planet_A_B}$ "
+                            f"({planet_ref}), or {moon_name} with $A_{{\\rm B}} = {moon_A_B}$ "
+                            f"({moon_ref})."
                         )
                         solara.Markdown("<br /><br />")
 
                         solara.Markdown("#### Planet: shallowest eclipse")
                         solara.FloatSlider(
                             'Redist. efficiency',
-                            value=eps_max, on_value=set_eps_max, min=0, max=1, step=0.05,
+                            value=eps_max, on_value=set_eps_max, min=0, max=1, step=0.01,
                             **slider_kwargs
                         )
                         solara.Markdown("<br /><br />")
                         solara.FloatSlider(
                             'Bond albedo, with redist.',
-                            value=AB_max, on_value=set_AB_max, min=0, max=1, step=0.05,
+                            value=AB_max, on_value=set_AB_max, min=0, max=1, step=0.01,
                             **slider_kwargs
+                        )
+                        (
+                            (planet_name, planet_A_B, planet_ref),
+                            (moon_name, moon_A_B, moon_ref)
+                        ) = closest_albedos(AB_max)
+                        solara.Markdown(
+                            f"Closest to {planet_name} with $A_{{\\rm B}} = {planet_A_B}$ "
+                            f"({planet_ref}), or {moon_name} with $A_{{\\rm B}} = {moon_A_B}$ "
+                            f"({moon_ref})."
                         )
                         solara.Markdown("<br /><br />")
 

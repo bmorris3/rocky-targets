@@ -11,8 +11,32 @@ __all__ = ['sheet']
 
 sheet = None
 
-max_program_limit = 500  # [hrs]
+# parse reference solar system albedos for docs:
+planets = pd.read_table(
+    "solar_system.md",
+    skiprows=[0, 1, 2, 3, 5],
+    delimiter='|',
+    usecols=[1, 2, 3],
+    nrows=5
+)
+moons = pd.read_table(
+    "solar_system.md",
+    skiprows=list(range(17)) + [18],
+    delimiter='|',
+    usecols=[1, 2, 3],
+    nrows=13
+)
 
+moons['A_B_value'] = [
+    float(row) if '±' not in row
+    else float(row.split('±')[0])
+    for row in moons[moons.columns[1]]
+]
+
+albedo = 0.4
+
+planet_columns = planets.columns
+moon_columns = moons.columns
 
 def download_sheet():
     global sheet
@@ -249,3 +273,19 @@ def target_cost(teff, aRs, AB_min, AB_max, eps_max, rp_rs, K_mag, n_sigma, eclip
 
     return cost_hours, sort_order
 
+
+def closest_albedos(albedo):
+    min_planet_ind = np.argmin(np.abs(albedo - planets[planet_columns[1]]))
+    min_moon_ind = np.argmin(np.abs(albedo - moons['A_B_value']))
+
+    def strip_or_pass(x):
+        if hasattr(x, 'strip'):
+            return x.strip()
+        return x
+
+    planet_name, planet_A_B, planet_ref = map(strip_or_pass, list(planets.iloc[min_planet_ind]))
+    moon_name, moon_A_B, moon_ref, _ = map(strip_or_pass, list(moons.iloc[min_moon_ind]))
+    return (
+        (planet_name, planet_A_B, planet_ref),
+        (moon_name, moon_A_B, moon_ref)
+    )
