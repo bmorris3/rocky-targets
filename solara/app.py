@@ -170,7 +170,7 @@ def Page():
                 if not include_imprecise_mass:
                     mask |= ~mass_constraint.astype(bool)
 
-                cost, sort_order = target_cost(
+                cost, sort_order, eclipses_for_n_sigma = target_cost(
                     teff=teff,
                     aRs=aRs,
                     AB_min=AB_min,
@@ -278,6 +278,7 @@ def Page():
                             'target': names[flippable_mask],
                             'required': req_excl[flippable_mask],
                             'cost [hr]': cost[flippable_mask],
+                            'eclipses': eclipses_for_n_sigma[flippable_mask].astype(int),
                             'priority': priority[flippable_mask],
                             '$\\rho$ [$\\rho_\\oplus$]': density[flippable_mask],
                             '$T_{\\rm eq}$ [K]': Teq[flippable_mask],
@@ -302,6 +303,8 @@ def Page():
                         for col in tbl.colnames[1:]:
                             if col not in mask_cols and col not in ['required']:
                                 tbl[col].format = '0.1f'
+                            if col in ['eclipses']:
+                                tbl[col].format = '1d'
 
                         tables.append(tbl)
 

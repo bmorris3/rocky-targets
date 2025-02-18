@@ -271,7 +271,7 @@ def target_cost(teff, aRs, AB_min, AB_max, eps_max, rp_rs, K_mag, n_sigma, eclip
     )
     sort_order = np.argsort(cost_hours)
 
-    return cost_hours, sort_order
+    return cost_hours, sort_order, eclipses_for_n_sigma
 
 
 def closest_albedos(albedo):
