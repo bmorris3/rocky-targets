@@ -20,7 +20,7 @@ from ipywidgets import (
 
 from core import (
     download_sheet, priority_from_cs_distance, target_cost,
-    closest_albedos
+    closest_albedos, density_of_earth_composition
 )
 
 sheet = download_sheet()
@@ -29,26 +29,35 @@ sheet = download_sheet()
 @solara.component
 def Page():
     columns = [
-        'Teff', 'Kmag', 'Rp/Rs', 'a/Rs', 'Eclipse Dur',
+        'Teff', 'Kmag', 'Rp/Rs',
+        'a/Rs', 'Eclipse Dur',
         'Instellation', 'Escape Velocity', 'Has < 20% mass constraint?',
-        'Rp', 'Mp', 'XUV Instellation', 'Teq', '1 eclipse depth precision',
+        'Rp', 'Mp', 'XUV Instellation',
+        'Teq', '1 eclipse depth precision',
         'Mp_err'
     ]
 
     (
-        teff, kmag, rp_rs, aRs, eclipse_dur, instellation,
-        v_esc, mass_constraint, Rp, Mp, xuv,
-        Teq, one_eclipse_precision_hdl, Mp_err
+        teff, kmag, rp_rs,
+        aRs, eclipse_dur,
+        instellation, v_esc, mass_constraint,
+        Rp, Mp, xuv,
+        Teq, one_eclipse_precision_hdl,
+        Mp_err
     ) = np.array(
         sheet[columns].to_numpy().T
     )
 
     names = np.array([t.split('(')[0].strip() for t in sheet['Planet name']])
+    mass_precision = Mp_err / Mp
 
     priority, x, y = priority_from_cs_distance(v_esc, instellation)
 
-    rho_earth = u.def_unit('rho_earth', 1 * u.M_earth / (4 / 3 * np.pi * (1 * u.R_earth) ** 3))
-    density = (Mp * u.M_earth / (4 / 3 * np.pi * (Rp * u.R_earth) ** 3)).to_value(rho_earth)
+    planet_mass = Mp * u.M_earth
+    rho_earth = density_of_earth_composition(Mp) * u.g / u.cm ** 3
+    density = (
+            (planet_mass / (4 / 3 * np.pi * (Rp * u.R_earth) ** 3)) / rho_earth
+    ).to_value(u.dimensionless_unscaled)
 
     in_go_programs = np.isin(
         sheet['Planet name'].tolist(),
@@ -59,8 +68,6 @@ def Page():
         "Hot Rocks" in comment if isinstance(comment, str) else False
         for comment in sheet['General comments'].tolist()
     ])
-
-    # In[10]:
 
     norm = simple_norm(priority, 'linear', min_cut=-0.1, max_cut=priority.max())
 
@@ -152,14 +159,11 @@ def Page():
                 exclude_mask = np.isin(np.arange(len(teff)), np.array(exclude_targets_idx))
                 mask = required_mask | exclude_mask
 
-                # exclude outside of temperature range, exclude imprecise masses:
+                # exclude outside of temperature range
                 mask |= ~np.array((teff_min < teff) & (teff < teff_max))
 
                 # apply max T_eq cutoff
                 mask |= ~(Teq < teq_max)
-
-                # apply max mass precision cutoff
-                mask |= ~(Mp_err / Mp < mass_prec)
 
                 if not include_go:
                     mask |= in_go_programs
@@ -168,7 +172,7 @@ def Page():
                     mask |= in_hot_rocks
 
                 if not include_imprecise_mass:
-                    mask |= ~mass_constraint.astype(bool)
+                    mask |= ((mass_precision > mass_prec) | (mass_precision == 0))
 
                 cost, sort_order, eclipses_for_n_sigma = target_cost(
                     teff=teff,
@@ -280,6 +284,7 @@ def Page():
                             'cost [hr]': cost[flippable_mask],
                             'eclipses': eclipses_for_n_sigma[flippable_mask].astype(int),
                             'priority': priority[flippable_mask],
+                            'mass unc.': mass_precision[flippable_mask],
                             '$\\rho$ [$\\rho_\\oplus$]': density[flippable_mask],
                             '$T_{\\rm eq}$ [K]': Teq[flippable_mask],
                             '$v_{\\rm esc}$ [km/s]': v_esc[flippable_mask],
@@ -305,6 +310,8 @@ def Page():
                                 tbl[col].format = '0.1f'
                             if col in ['eclipses']:
                                 tbl[col].format = '1d'
+                            if col in ['mass unc.']:
+                                tbl[col].format = '0.2f'
 
                         tables.append(tbl)
 
@@ -323,6 +330,7 @@ def Page():
 
                     labels = ['$T_{\\rm eff}$ [K]', '$t_{\\rm obs}$ [hrs]', 'priority',
                               '$\\rho$ [$\\rho_\\oplus$]', 'log XUV']
+
                     for i, (parameter, label) in enumerate(zip(
                             [teff, cost, priority, density, np.where(xuv < 1e4, np.log10(xuv), np.nan)],
                             labels
@@ -342,8 +350,6 @@ def Page():
                         )
                         if any(s in label for s in ['T_{', 'priority', 'rho', 'XUV']):
                             ax_hist[i].set_yscale('log')
-                        if any(s in label for s in ['rho']):
-                            ax_hist[i].set_xscale('log')
 
                     fig.tight_layout()
                     deps = [
@@ -474,8 +480,8 @@ def Page():
                         solara.Markdown("## Observation requirements")
 
                         solara.FloatSlider(
-                            'Max frac. mass precision',
-                            value=0.2, min=0, max=0.5, step=0.01,
+                            'Max frac mass precision',
+                            value=mass_prec, min=0, max=0.5, step=0.01, on_value=set_mass_prec,
                             **slider_kwargs
                         )
                         solara.Markdown("<br /><br />")
@@ -536,6 +542,11 @@ def Page():
                             label='Include imprecise masses',
                             value=include_imprecise_mass,
                             on_value=set_include_imprecise_mass,
+                        )
+                        solara.Markdown(
+                            'Include targets with mass uncertainty >20%,'
+                            'irrespective of the setting in the "Max frac mass precision" '
+                            'slider in the "Obs" tab.'
                         )
                         solara.Markdown('<br /><br />')
                         solara.Markdown('### Specific targets')

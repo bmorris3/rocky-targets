@@ -6,6 +6,7 @@ from astropy.modeling.models import BlackBody
 import astropy.units as u
 from astropy.table import Table
 from urllib.request import urlretrieve
+import scipy
 
 __all__ = ['sheet']
 
@@ -37,6 +38,9 @@ albedo = 0.4
 
 planet_columns = planets.columns
 moon_columns = moons.columns
+
+earth_comp_mass, earth_comp_radius = np.genfromtxt('massradiusEarthlikeRocky.txt').T  # Models from Zeng+19 you may find in the website
+model_earth = scipy.interpolate.UnivariateSpline(np.log10(earth_comp_mass), earth_comp_radius, k=5)
 
 def download_sheet():
     global sheet
@@ -289,3 +293,9 @@ def closest_albedos(albedo):
         (planet_name, planet_A_B, planet_ref),
         (moon_name, moon_A_B, moon_ref)
     )
+
+def density_of_earth_composition(mass):
+    m = mass * 5.9724e27
+    v = 4 / 3 * np.pi * (model_earth(np.log10(mass)) * 6378.137e5)**3
+    rho = m / v
+    return rho
