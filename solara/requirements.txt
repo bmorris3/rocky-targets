@@ -4,4 +4,4 @@ matplotlib
 astropy
 ipywidgets
 pandas
-
+scipy
